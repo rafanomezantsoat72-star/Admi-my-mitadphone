@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ADMIN FIND PHONE</title>
+
+<style>
+body{
+  font-family:Arial;
+  background:#111;
+  color:white;
+  text-align:center;
+  padding:20px;
+}
+
+.box{
+  background:#222;
+  padding:20px;
+  border-radius:15px;
+  margin-top:20px;
+}
+
+input{
+  padding:10px;
+  width:80%;
+  border-radius:8px;
+  border:none;
+  margin-top:10px;
+}
+
+button{
+  padding:10px;
+  margin-top:10px;
+  border:none;
+  border-radius:8px;
+  background:#00ff88;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+.status{
+  color:lime;
+  margin-top:10px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🖥️ ADMIN GPS PANEL</h1>
+
+<div class="box">
+
+  <input id="deviceInput" placeholder="Enter Device ID (ex: MTP-12345)">
+
+  <br>
+
+  <button onclick="startTrack()">📍 LOCALISER</button>
+  <button onclick="sendAlert()">📢 MESSAGE</button>
+  <button onclick="startRing()">🔊 SONNER</button>
+  <button onclick="stopRing()">⛔ STOP SONNERIE</button>
+
+  <p class="status" id="status">En attente...</p>
+
+  <h3>Latitude:</h3>
+  <p id="lat">-</p>
+
+  <h3>Longitude:</h3>
+  <p id="lng">-</p>
+
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, onValue, set }
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+
+// 🔥 FIREBASE CONFIG
+const firebaseConfig = {
+  apiKey: "AIzaSyD5mmHMoEXDYUqKV-GNPFvbFappYHq8A",
+  authDomain: "my-mitadyphon-2dd79.firebaseapp.com",
+  databaseURL: "https://my-mitadyphon-2dd79-default-rtdb.firebaseio.com",
+  projectId: "my-mitadyphon-2dd79",
+  storageBucket: "my-mitadyphon-2dd79.firebasestorage.app",
+  messagingSenderId: "1027357895410",
+  appId: "1:1027357895410:web:3bc1ab9b4fd7862e897e6b"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+let currentDevice = "";
+
+// 📍 TRACK GPS
+window.startTrack = function(){
+
+  currentDevice = document.getElementById("deviceInput").value;
+
+  if(!currentDevice){
+    alert("Entrer Device ID");
+    return;
+  }
+
+  document.getElementById("status").innerText = "Tracking: " + currentDevice;
+
+  onValue(ref(db, "devices/" + currentDevice), (snap)=>{
+
+    const data = snap.val();
+
+    if(data){
+
+      document.getElementById("lat").innerText = data.latitude;
+      document.getElementById("lng").innerText = data.longitude;
+
+    }
+
+  });
+
+};
+
+
+// 📢 SEND ALERT
+window.sendAlert = function(){
+
+  let msg = prompt("Message à envoyer:");
+
+  if(msg){
+
+    set(ref(db, "devices/" + currentDevice + "/alert"), msg);
+
+    document.getElementById("status").innerText =
+    "Message envoyé ✔";
+
+  }
+
+};
+
+
+// 🔊 START RING
+window.startRing = function(){
+
+  set(ref(db, "devices/" + currentDevice + "/ring"), true);
+
+  document.getElementById("status").innerText =
+  "Sonnerie ON 🔊";
+
+};
+
+
+// ⛔ STOP RING
+window.stopRing = function(){
+
+  set(ref(db, "devices/" + currentDevice + "/ring"), false);
+
+  document.getElementById("status").innerText =
+  "Sonnerie OFF ⛔";
+
+};
+
+</script>
+
+</body>
+</html>
